@@ -91,6 +91,7 @@ def write_release_manifest(root: Path, out_dir: Path, archive_name: str, digest:
     target.write_text(
         f'{source}\nurl = "{base}/{archive_name}"\nsha256 = "{digest}"\n',
         encoding="utf-8",
+        newline="\n",
     )
     return target
 
