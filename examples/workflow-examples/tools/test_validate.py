@@ -61,14 +61,17 @@ class PackageCase(unittest.TestCase):
         self.temporary.cleanup()
 
     def write_manifest(self, content: str) -> None:
-        (self.root / "orax.toml").write_text(content, encoding="utf-8")
+        # newline="\n" keeps the fixture bytes LF on every platform, so the
+        # CRLF test below starts from a real LF checkout rather than Windows'
+        # translated CRLF baseline.
+        (self.root / "orax.toml").write_text(content, encoding="utf-8", newline="\n")
 
     def write_document(self, content: dict | str, name: str = "workflow.json") -> Path:
         path = self.workflows / name
         if isinstance(content, str):
-            path.write_text(content, encoding="utf-8")
+            path.write_text(content, encoding="utf-8", newline="\n")
         else:
-            path.write_text(json.dumps(content, ensure_ascii=False), encoding="utf-8")
+            path.write_text(json.dumps(content, ensure_ascii=False), encoding="utf-8", newline="\n")
         return path
 
     def codes(self) -> list[str]:
