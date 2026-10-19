@@ -3,14 +3,20 @@
 
 The layout rules come from the workflow package decision
 (specs/decisions/desktop/plugin/category/workflow/0-workflow-package-format.md).
-The per-document checks mirror the first-phase publish gate Cloud runs on
-import (cloud/internal/core/workflow_graph.go). Cloud is the consumer that
-turns a document into a runnable workflow, so a document that this script
-accepts must be one Cloud accepts too.
+The per-document checks cover the first-phase publish-gate rules these linear
+documents use (cloud/internal/core/workflow_graph.go). Cloud is the consumer
+that turns a document into a runnable workflow, so for those rules a document
+this script accepts is one Cloud accepts too.
 
-One check is deliberately stricter than today's publish gate: a cycle is
-refused, because no example should depend on a graph the scheduler cannot
-settle. Every other rule matches the gate.
+Condition-node configuration is not checked yet: Cloud additionally refuses
+unsupported condition settings (`condition_cases_not_a_list`,
+`condition_selector_unsupported`, `condition_operator_unsupported`,
+`condition_value_template_unsupported`), so a condition document can pass here
+and still be refused on import. Those checks will be added together with a
+condition example.
+
+A cycle is refused here as well; Cloud's publish gate rejects it with
+`graph_cycle`.
 
 Usage:
     python3 tools/validate.py [PACKAGE_DIR]
@@ -354,7 +360,7 @@ def validate_slot_references(
 def validate_acyclic(
     nodes_by_id: dict[str, dict], edges: list, source: Path, problems: list[dict]
 ) -> None:
-    """Refuse a cycle. The gate may not check this yet; an example must be executable."""
+    """Refuse a cycle, which Cloud's publish gate rejects as `graph_cycle`."""
     adjacency: dict[str, list[str]] = {node_id: [] for node_id in nodes_by_id}
     indegree = {node_id: 0 for node_id in nodes_by_id}
     for raw in edges:

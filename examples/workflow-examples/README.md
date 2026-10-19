@@ -71,11 +71,15 @@ python3 -m unittest discover -s tools -p 'test_*.py'
 python3 tools/build.py --out dist
 ```
 
-`validate.py` mirrors the first-phase publish gate Cloud applies to an imported
-document, so a package that passes is one Cloud accepts. `build.py` writes a
-reproducible `.orax` (sorted entries, fixed timestamps) and prints its SHA-256.
-Pass `--base-url https://…` to also write `dist/manifest.toml`, the release
-form with the download URL and digest a registry entry needs.
+`validate.py` covers the publish-gate rules these linear documents use, so a
+package of this shape that passes is accepted by Cloud. It does not validate
+condition-node configuration yet: Cloud additionally refuses unsupported
+condition settings, and those checks will be added together with a condition
+example. `build.py` writes a reproducible `.orax` (sorted entries, fixed
+timestamps, LF-normalized text) and prints its SHA-256, so the digest does not
+depend on the checkout's line endings. Pass `--base-url https://…` to also
+write `dist/manifest.toml`, the release form with the download URL and digest a
+registry entry needs.
 
 ## License
 
