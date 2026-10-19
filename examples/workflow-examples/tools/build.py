@@ -3,8 +3,9 @@
 
 The archive layout is the one the workflow package decision fixes: `orax.toml`
 at the root and the direct `assets/workflows/*.json` documents. Building is
-reproducible -- entries are sorted, timestamps are fixed and permissions are
-normalized -- so the same source always produces the same SHA-256.
+reproducible -- entries are sorted, timestamps are fixed, permissions are
+normalized and text is stored with LF line endings -- so the same source always
+produces the same SHA-256, whatever the checkout's line-ending settings.
 
 Usage:
     python3 tools/build.py [--out DIR] [--base-url URL]
@@ -43,6 +44,18 @@ def staged_entries(root: Path) -> list[tuple[Path, str]]:
     return entries
 
 
+def normalized_bytes(source: Path) -> bytes:
+    """Read a text entry with LF line endings.
+
+    Git checks text files out with CRLF under `core.autocrlf=true`, and the
+    workspace is what this builder reads. Normalizing here keeps the archive
+    digest independent of the checkout instead of relying on every platform's
+    Git configuration; the package's blobs are already LF, so the digest does
+    not change.
+    """
+    return source.read_bytes().replace(b"\r\n", b"\n")
+
+
 def build_package(root: Path, out_dir: Path) -> tuple[Path, str]:
     """Validate, write the archive, and return its path and SHA-256 digest."""
     problems = validate_package(root)
@@ -62,7 +75,7 @@ def build_package(root: Path, out_dir: Path) -> tuple[Path, str]:
             info.compress_type = zipfile.ZIP_DEFLATED
             info.create_system = 3  # Unix, so the permission bits below are meaningful.
             info.external_attr = 0o644 << 16
-            archive.writestr(info, source.read_bytes())
+            archive.writestr(info, normalized_bytes(source))
 
     digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
     return archive_path, digest

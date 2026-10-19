@@ -90,6 +90,16 @@ class ValidPackageTests(PackageCase):
         self.assertEqual(first_digest, second_digest)
         self.assertEqual(first.read_bytes(), second.read_bytes())
 
+    def test_build_ignores_checkout_line_endings(self) -> None:
+        # Windows checkouts commonly turn LF into CRLF. The digest a registry
+        # entry pins must not depend on where the package was built.
+        self.write_document(document())
+        _, lf_digest = build.build_package(self.root, self.root / "dist")
+        for path in (self.root / "orax.toml", *self.workflows.glob("*.json")):
+            path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+        _, crlf_digest = build.build_package(self.root, self.root / "dist")
+        self.assertEqual(lf_digest, crlf_digest)
+
 
 class LayoutTests(PackageCase):
     def test_requires_the_workflows_directory(self) -> None:
