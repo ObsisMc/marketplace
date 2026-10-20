@@ -165,13 +165,25 @@ class DocumentTests(PackageCase):
         self.write_document(body)
         self.assertIn("node_kind_unsupported", self.codes())
 
-    def test_rejects_an_empty_skills_array(self) -> None:
-        # The gate refuses a present, non-null field even when it is empty. This is
-        # why the examples omit `skills` and `mcps` entirely instead of writing [].
+    def test_accepts_editor_default_agent_config(self) -> None:
+        # cloud#99 lets a field through when it asks for nothing: empty `skills`
+        # and `mcps` and `interactive: false` are the editor's defaults.
         body = document()
         body["nodes"][1]["data"]["agentConfig"]["skills"] = []
+        body["nodes"][1]["data"]["agentConfig"]["mcps"] = []
+        body["nodes"][1]["data"]["agentConfig"]["interactive"] = False
         self.write_document(body)
-        self.assertIn("node_config_unsupported", self.codes())
+        self.assertEqual(self.codes(), [])
+
+    def test_rejects_an_enabled_agent_config_field(self) -> None:
+        # A non-empty list or `interactive: true` still enables behavior the first
+        # phase does not execute, so the gate refuses it.
+        for field, value in (("skills", ["summarize"]), ("mcps", ["a-mcp"]), ("interactive", True)):
+            with self.subTest(field=field):
+                body = document()
+                body["nodes"][1]["data"]["agentConfig"][field] = value
+                self.write_document(body)
+                self.assertIn("node_config_unsupported", self.codes())
 
     def test_allows_an_explicit_null_field(self) -> None:
         body = document()

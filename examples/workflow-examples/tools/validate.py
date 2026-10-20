@@ -37,8 +37,10 @@ from pathlib import Path
 EXECUTABLE_NODE_KINDS = {"start", "agent", "condition", "output"}
 
 # Agent configuration fields the first phase does not execute. Cloud refuses a
-# document that carries any of them with a non-null value -- an empty array or
-# object counts, because the key is still a claim the author made.
+# document that carries one of them with a value that still enables behavior:
+# `skills` and `mcps` as an empty list and `interactive` as `false` are the
+# editor's "nothing selected" defaults and are not refused. See
+# `agent_config_field_enabled` below.
 UNSUPPORTED_AGENT_CONFIG_FIELDS = (
     "skills",
     "mcps",
@@ -265,15 +267,34 @@ def validate_nodes(nodes: list, source: Path, problems: list[dict]) -> dict[str,
     return seen
 
 
+def agent_config_field_enabled(field: str, value: object) -> bool:
+    """Whether a non-null agent-config value still enables behavior the first
+    phase does not execute, mirroring Cloud's `agentConfigFieldEnabled`.
+
+    `skills` and `mcps` are lists whose empty form is the editor's "nothing
+    selected" default, and `interactive` is a boolean whose `false` is the
+    same; those are the only fields with a "nothing selected" form, so every
+    other non-null value is enabled. A value of the wrong shape is enabled: the
+    validator refuses by name and does not re-check the schema.
+    """
+    if field in ("skills", "mcps"):
+        return not isinstance(value, list) or len(value) != 0
+    if field == "interactive":
+        return not isinstance(value, bool) or value
+    return True
+
+
 def validate_agent_config(data: dict, source: Path, node_id: str, problems: list[dict]) -> None:
     config = data.get("agentConfig")
     if not isinstance(config, dict):
         return
     for field in UNSUPPORTED_AGENT_CONFIG_FIELDS:
-        if field in config and config[field] is not None:
-            problems.append(
-                problem("node_config_unsupported", source=source, nodeId=node_id, field=field)
-            )
+        value = config.get(field)
+        if value is None or not agent_config_field_enabled(field, value):
+            continue
+        problems.append(
+            problem("node_config_unsupported", source=source, nodeId=node_id, field=field)
+        )
 
 
 def validate_edges(edges: list, nodes_by_id: dict[str, dict], source: Path, problems: list[dict]) -> None:
