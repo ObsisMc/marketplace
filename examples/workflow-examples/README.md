@@ -13,10 +13,11 @@ uninstalling the package.
 | `hello-agent.json` | Start → Agent → Output | A personal default executor. The agent uses the implicit `default` slot. |
 | `named-slot.json` | Start → Agent → Output | A personal `writer` slot mapping. The agent declares and references the slot. |
 
-Both documents take one run input, pass it to the agent through a prompt
-template variable, and expose the agent result from the Output node. Neither
-carries credentials, deployment-specific configuration, or MCP/skill
-dependencies.
+Both documents take one run input and pass it to the agent through a prompt
+template variable; the Output node selects the agent's result, which arrives
+once Cloud writes agent output back into the variable pool. Until then the
+Output node yields an empty result. Neither document carries credentials,
+deployment-specific configuration, or MCP/skill dependencies.
 
 The examples are intentionally linear. A branching example will be added once
 the shared condition-selector shape is settled; publishing an example against
@@ -43,10 +44,16 @@ one of the runner's own connections and models, then start the same snapshot
 again — nothing about the document changes.
 
 Cloud currently sends an agent prompt verbatim and does not interpolate
-`{{#...#}}` template variables. These documents are written against the final
-prompt contract, so end-to-end execution waits for variable passing to land in
-the cloud session runtime. They also use the cloud executor-slot schema;
-Desktop can import and edit them, but the intended runtime is Cloud.
+`{{#...#}}` template variables, and it does not yet write an agent's result
+back into the variable pool. These documents are written against the final
+contract, so end-to-end execution waits for variable passing and agent output
+to land in the cloud session runtime. They also use the cloud executor-slot
+schema; Desktop can import and edit them, but the intended runtime is Cloud.
+
+Running either document also requires a Project: Cloud refuses a run without
+one (`workflow_run_project_required`). The Project's space must resolve an
+OpenCode plugin version when the run is created; a run that could not freeze
+one fails its first agent node with `agent_plugin_version_unfrozen`.
 
 ## Layout
 

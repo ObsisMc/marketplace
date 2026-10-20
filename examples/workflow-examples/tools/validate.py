@@ -10,10 +10,12 @@ this script accepts is one Cloud accepts too.
 
 Condition-node configuration is not checked yet: Cloud additionally refuses
 unsupported condition settings (`condition_cases_not_a_list`,
-`condition_selector_unsupported`, `condition_operator_unsupported`,
-`condition_value_template_unsupported`), so a condition document can pass here
-and still be refused on import. Those checks will be added together with a
-condition example.
+`condition_case_not_an_object`, `condition_case_id_missing`,
+`condition_logic_unsupported`, `condition_rules_not_a_list`,
+`condition_rule_not_an_object`, `condition_selector_unsupported`,
+`condition_selector_undeclared`, `condition_operator_unsupported`), so a
+condition document can pass here and still be refused on import. Those checks
+will be added together with a condition example.
 
 A cycle is refused here as well; Cloud's publish gate rejects it with
 `graph_cycle`.
