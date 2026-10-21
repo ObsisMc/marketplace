@@ -1,0 +1,34 @@
+name: workflow-examples
+
+on:
+  push:
+    paths:
+      - 'examples/workflow-examples/**'
+      - 'registry/o/ora-space.workflow-examples/**'
+  pull_request:
+    paths:
+      - 'examples/workflow-examples/**'
+      - 'registry/o/ora-space.workflow-examples/**'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify the committed .orax matches the source build and the listing digest
+        working-directory: examples/workflow-examples
+        run: |
+          set -euo pipefail
+          built_out="$(python3 tools/build.py --out "$RUNNER_TEMP/wf-build")"
+          built_digest="$(printf '%s\n' "$built_out" | sed -n 's/.*sha256=\([0-9a-f]\{64\}\).*/\1/p')"
+          committed_digest="$(python3 -c 'import hashlib; print(hashlib.sha256(open("dist/ora-space.workflow-examples-0.1.0.orax", "rb").read()).hexdigest())')"
+          listing_digest="$(python3 -c 'import tomllib; print(tomllib.load(open("../../registry/o/ora-space.workflow-examples/orax.toml", "rb"))["sha256"])')"
+          echo "built=$built_digest"
+          echo "committed=$committed_digest"
+          echo "listing=$listing_digest"
+          test -n "$built_digest"
+          test "$built_digest" = "$committed_digest"
+          test "$built_digest" = "$listing_digest"

@@ -1,0 +1,12 @@
+resolver = 1
+title = "Workflow Examples"
+identifier = "ora-space.workflow-examples"
+namespace = "official"
+kind = "workflow"
+version = "0.1.0"
+description = "Official Ora workflow examples: a minimal default-slot agent and a named executor slot."
+homepage = "https://github.com/ora-space/marketplace"
+license = "Apache-2.0"
+
+url = "https://raw.githubusercontent.com/ora-space/marketplace/af3551acf184fc2c893f382a17d3488f6fa075ff/examples/workflow-examples/dist/ora-space.workflow-examples-0.1.0.orax"
+sha256 = "ba0b074b69828dd3bcc4c8bad7576962b50ac1717b707e16a736dc7d3e3bf18c"
