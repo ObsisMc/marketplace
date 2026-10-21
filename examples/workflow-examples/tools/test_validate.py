@@ -185,6 +185,17 @@ class DocumentTests(PackageCase):
                 self.write_document(body)
                 self.assertIn("node_config_unsupported", self.codes())
 
+    def test_rejects_a_mis_shaped_agent_config_field(self) -> None:
+        # A wrong-shaped value still enables behavior: the gate refuses by field
+        # name instead of re-checking the schema, so a string where a list or
+        # boolean belongs is refused like a real enabling value.
+        for field, value in (("skills", "x"), ("interactive", "yes")):
+            with self.subTest(field=field):
+                body = document()
+                body["nodes"][1]["data"]["agentConfig"][field] = value
+                self.write_document(body)
+                self.assertIn("node_config_unsupported", self.codes())
+
     def test_allows_an_explicit_null_field(self) -> None:
         body = document()
         body["nodes"][1]["data"]["agentConfig"]["skills"] = None

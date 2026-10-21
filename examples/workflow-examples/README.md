@@ -81,12 +81,16 @@ python3 tools/build.py --out dist
 `validate.py` covers the publish-gate rules these linear documents use, so a
 package of this shape that passes is accepted by Cloud. It does not validate
 condition-node configuration yet: Cloud additionally refuses unsupported
-condition settings, and those checks will be added together with a condition
-example. `build.py` writes a reproducible `.orax` (sorted entries, fixed
-timestamps, LF-normalized text) and prints its SHA-256, so the digest does not
-depend on the checkout's line endings. Pass `--base-url https://…` to also
-write `dist/manifest.toml`, the release form with the download URL and digest a
-registry entry needs.
+condition settings (`condition_cases_not_a_list`,
+`condition_case_not_an_object`, `condition_case_id_missing`,
+`condition_logic_unsupported`, `condition_rules_not_a_list`,
+`condition_rule_not_an_object`, `condition_selector_unsupported`,
+`condition_selector_undeclared`, `condition_operator_unsupported`), and those
+checks will be added together with a condition example. `build.py` writes a
+reproducible `.orax` (sorted entries, fixed timestamps, LF-normalized text) and
+prints its SHA-256, so the digest does not depend on the checkout's line
+endings. Pass `--base-url https://…` to also write `dist/manifest.toml`, the
+release form with the download URL and digest a registry entry needs.
 
 ## License
 
